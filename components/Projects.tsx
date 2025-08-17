@@ -141,9 +141,14 @@ const Projects = () => {
   return (
     <div id="projects" className="relative flex min-h-screen w-full flex-col items-center justify-center py-20 px-4 md:px-8 lg:px-16 overflow-hidden">
       <DataStreamBackground />
-      <motion.h2 className="relative mb-16 text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 z-10 text-center" initial={{ y: -100, opacity: 0, scale: 0.5 }} whileInView={{ y: 0, opacity: 1, scale: 1 }} transition={{ duration: 1, type: "spring", stiffness: 100 }} style={{ textShadow: "0 0 40px rgba(0, 255, 255, 0.6)" }}>
-        <span className="relative font-mono">FEATURED PROJECTS</span>
-      </motion.h2>
+      <motion.h2
+    className="relative mb-16 text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 z-10 text-center font-mono"
+    initial={{ y: -100, opacity: 0, scale: 0.5 }}
+    whileInView={{ y: 0, opacity: 1, scale: 1 }}
+    transition={{ duration: 1, type: "spring", stiffness: 100 }}
+    style={{ textShadow: "0 0 40px rgba(0, 255, 255, 0.6)" }}
+>    FEATURED PROJECTS
+</motion.h2>
 
       {loading ? (
         <QuantumLoader />

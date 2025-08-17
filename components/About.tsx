@@ -5,18 +5,17 @@ import { useEffect, useState, useRef } from "react";
 
 // Enhanced skills with gravitational positioning
 const skills = [
-  { name: "React", x: "-15vw", y: "2vw", color: "#61DAFB", glow: "#61DAFB" },
-  { name: "Next.js", x: "-5vw", y: "-8vw", color: "#FFFFFF", glow: "#FFFFFF" },
-  { name: "TypeScript", x: "15vw", y: "6vw", color: "#3178C6", glow: "#3178C6" },
-  { name: "Tailwind CSS", x: "0vw", y: "10vw", color: "#06B6D4", glow: "#06B6D4" },
-  { name: "Framer Motion", x: "-18vw", y: "-12vw", color: "#FF0080", glow: "#FF0080" },
-  { name: "Firebase", x: "12vw", y: "-10vw", color: "#FFCA28", glow: "#FFCA28" },
-  { name: "Node.js", x: "20vw", y: "-5vw", color: "#68A063", glow: "#68A063" },
-  { name: "Git", x: "0vw", y: "-15vw", color: "#F05032", glow: "#F05032" },
-  // Add more skills as needed
+  { name: "Money", x: "-60px", y: "40px", color: "#61DAFB", glow: "#61DAFB" },
+  { name: "Investing", x: "100px", y: "0px", color: "#FFFFFF", glow: "#FFFFFF" },
+  { name: "Philosophy", x: "0px", y: "-90px", color: "#3178C6", glow: "#3178C6" },
+  { name: "Coding", x: "60px", y: "40px", color: "#FF0080", glow: "#FF0080" },
+  { name: "Chess", x: "-100px", y: "-80px", color: "#FFCA28", glow: "#FFCA28" },
+  { name: "Gym", x: "100px", y: "-80px", color: "#68A063", glow: "#68A063" },
+  { name: "Music", x: "0px", y: "90px", color: "#F05032", glow: "#F05032" },
 ];
 
-const HolographicSkill = ({ name, x, y, color, glow, index }: { name: string; x: string; y: string; color: string; glow: string; index: number }) => {
+// --- แก้ไข Component นี้ ---
+const HolographicSkill = ({ name, x, y, color, glow }: { name: string; x: string; y: string; color: string; glow: string; }) => {
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -26,37 +25,43 @@ const HolographicSkill = ({ name, x, y, color, glow, index }: { name: string; x:
   if (!isClient) return null;
 
   const randomDelay = Math.random() * 2;
-  const randomDuration = 3 + Math.random() * 3;
+  const randomDuration = 4 + Math.random() * 4; // ทำให้ animation ช้าลงเล็กน้อย
 
   return (
     <motion.div
       className="absolute"
       initial={{ x: 0, y: 0, opacity: 0 }}
       animate={{
-        x: [x, `calc(${x} + ${Math.random() * 20 - 10}px)`],
-        y: [y, `calc(${y} + ${Math.random() * 20 - 10}px)`],
-        opacity: [0, 0.8, 0],
+        x: [x, `calc(${x} + ${Math.random() * 10 - 5}px)`], // ลดการส่ายลง
+        y: [y, `calc(${y} + ${Math.random() * 10 - 5}px)`],
+        // ทำให้มองเห็นนานขึ้น
+        opacity: [0, 1, 1, 0], 
       }}
       transition={{
         duration: randomDuration,
         delay: randomDelay,
         repeat: Infinity,
-        repeatType: "reverse",
+        repeatType: "loop", // ใช้ loop เพื่อให้วนซ้ำแบบเดิม
         ease: "easeInOut",
+        times: [0, 0.2, 0.8, 1], // ควบคุมช่วงเวลาของ opacity
       }}
     >
       <div className="relative group">
         <div
-          className="px-3 py-1 text-sm font-mono rounded-full border border-white/20"
-          style={{ color, textShadow: `0 0 8px ${glow}` }}
+          className="px-4 py-2 text-sm font-bold font-mono rounded-full border border-white/30 backdrop-blur-sm"
+          style={{
+            color,
+            // เพิ่มความเข้มของเงา
+            textShadow: `0 0 12px ${glow}`, 
+          }}
         >
           {name}
         </div>
         <div
-          className="absolute -inset-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute -inset-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           style={{
-            background: `radial-gradient(circle, transparent, ${glow} 50%)`,
-            filter: "blur(10px)",
+            background: `radial-gradient(circle, transparent, ${glow} 40%)`,
+            filter: "blur(12px)",
           }}
         />
       </div>
@@ -90,28 +95,15 @@ const About = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
-          <h2 className="text-5xl font-bold md:text-7xl">
-            <span className="relative">
-              ABOUT ME
-              <motion.span
-                className="absolute left-0 top-0 text-cyan-400"
-                initial={{ opacity: 0 }}
-                animate={{
-                  opacity: [0, 1, 0],
-                  textShadow: [
-                    "0 0 5px #06B6D4",
-                    "0 0 20px #06B6D4",
-                    "0 0 5px #06B6D4",
-                  ],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatDelay: 3,
-                }}
-              />
-            </span>
-          </h2>
+          <motion.h2
+            className="text-5xl font-bold md:text-7xl relative mb-16 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 z-10 font-mono"
+            initial={{ y: -100, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            transition={{ duration: 1, type: "spring", stiffness: 100 }}
+            style={{ textShadow: "0 0 40px rgba(0, 255, 255, 0.6)" }}
+          >
+            ABOUT ME
+          </motion.h2>
           <div className="mt-8 space-y-4 font-mono text-lg text-gray-300">
             <p>
               I think, therefore I am.
@@ -125,16 +117,16 @@ const About = () => {
           </div>
         </motion.div>
 
+
         <div className="relative flex h-96 w-full items-center justify-center md:w-1/2">
-          {/* --- FIXED CORE ANIMATION --- */}
           <motion.div
             className="absolute w-2 h-2 rounded-full bg-cyan-400"
             style={{ boxShadow: "0 0 20px 5px #06B6D4" }}
-            animate={{ scale: [1, 1.1] }} // <-- ใช้แค่ 2 keyframes
+            animate={{ scale: [1, 1.1] }}
             transition={{
               duration: 2,
               repeat: Infinity,
-              repeatType: "reverse", // <-- เปลี่ยนเป็น 'reverse' หรือ 'yoyo'
+              repeatType: "reverse",
               ease: "easeInOut",
             }}
           />
@@ -148,15 +140,16 @@ const About = () => {
                 y={skill.y}
                 color={skill.color}
                 glow={skill.glow}
-                index={index}
               />
             ))}
           </div>
 
+          {/* --- แก้ไข วงโคจรตรงนี้ --- */}
           {[1, 2, 3].map((ring) => (
             <motion.div
               key={ring}
-              className="absolute rounded-full border border-cyan-400/20"
+              // เพิ่มความเข้มของเส้นขอบ
+              className="absolute rounded-full border border-cyan-400/40" 
               style={{
                 width: `${ring * 80}px`,
                 height: `${ring * 80}px`,

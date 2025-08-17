@@ -30,6 +30,8 @@ type CosmicErrorStyle = {
 const Hero = () => {
   const [glitchActive, setGlitchActive] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  // --- 1. สร้าง State สำหรับเช็ค Mobile ---
+  const [isMobile, setIsMobile] = useState(false);
 
   // States to hold styles generated only on the client
   const [particleStyles, setParticleStyles] = useState<ParticleStyle[]>([]);
@@ -41,10 +43,16 @@ const Hero = () => {
   });
 
   useEffect(() => {
-    // This ensures all random calculations happen only after the component has mounted on the client
     setIsClient(true);
+    
+    // --- 2. เพิ่ม Logic ตรวจสอบขนาดหน้าจอ ---
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768); // md breakpoint
+    };
 
-    // Generate styles for cosmic particles
+    checkScreenSize(); // เช็คครั้งแรกตอนโหลด
+    window.addEventListener('resize', checkScreenSize); // เช็คทุกครั้งที่ปรับขนาดจอ
+
     const pStyles = Array.from({ length: 50 }).map((_, i) => ({
       left: `${Math.random() * 100}%`,
       top: `${Math.random() * 100}%`,
@@ -55,7 +63,6 @@ const Hero = () => {
     }));
     setParticleStyles(pStyles);
 
-    // Generate styles for glitch blocks
     const gStyles = Array.from({ length: 6 }).map(() => ({
       left: `${Math.random() * 90}%`,
       top: `${Math.random() * 90}%`,
@@ -64,7 +71,6 @@ const Hero = () => {
     }));
     setGlitchBlockStyles(gStyles);
 
-    // Generate styles for cosmic error messages
     const eStyles = Array.from({ length: 3 }).map(() => ({
         left: `${Math.random() * 80 + 10}%`,
         top: `${Math.random() * 80 + 10}%`,
@@ -72,14 +78,14 @@ const Hero = () => {
     }));
     setCosmicErrorStyles(eStyles);
 
-    // Generate random readings for cosmic status
-    setCosmicReadings({
-        radiation: Math.floor(Math.random() * 999 + 100),
-        stability: parseFloat((97 + Math.random() * 2.9).toFixed(1)),
-    });
+    const readingInterval = setInterval(() => {
+        setCosmicReadings({
+            radiation: Math.floor(Math.random() * 999 + 100),
+            stability: parseFloat((97 + Math.random() * 2.9).toFixed(1)),
+        });
+    }, 2000);
 
 
-    // Interval for triggering the main glitch effect
     const glitchInterval = setInterval(() => {
       if (Math.random() < 0.08) { // 8% chance
         setGlitchActive(true);
@@ -89,10 +95,14 @@ const Hero = () => {
       }
     }, 1500);
 
-    return () => clearInterval(glitchInterval);
+    // Cleanup function
+    return () => {
+      clearInterval(glitchInterval);
+      clearInterval(readingInterval);
+      window.removeEventListener('resize', checkScreenSize);
+    }
   }, []);
 
-  // Return a placeholder or null during server-side rendering to prevent mismatch
   if (!isClient) {
     return null; 
   }
@@ -103,9 +113,8 @@ const Hero = () => {
   ];
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 md:px-8 relative overflow-hidden">
+    <div className="flex min-h-screen items-center justify-center px-4 md:px-8 relative overflow-hidden py-16">
       <div className="absolute inset-0 pointer-events-none">
-        {/* Holographic scan lines */}
         <div className="absolute inset-0 opacity-20">
           {Array.from({ length: 8 }).map((_, i) => (
             <div
@@ -120,7 +129,6 @@ const Hero = () => {
           ))}
         </div>
 
-        {/* Cosmic particles */}
         {particleStyles.map((style, i) => (
           <div
             key={i}
@@ -189,7 +197,9 @@ const Hero = () => {
                   background: 'linear-gradient(45deg, #FF4500, #FFD700, #00FFFF, #FF6B00, #FFFF00)',
                   backgroundSize: '400% 400%', backgroundClip: 'text', WebkitBackgroundClip: 'text',
                   color: 'transparent',
-                  animation: glitchActive ? 'quantum-shift 0.3s ease-in-out infinite' : 'cosmic-flow-text 6s ease-in-out infinite'
+                  animation: glitchActive ? 'quantum-shift 0.3s ease-in-out infinite' : 'cosmic-flow-text 6s ease-in-out infinite',
+                  WebkitTextStroke: '0.5px #fff',
+                  WebkitTextFillColor: 'transparent',
                 }}
               >
                 I&apos;m <span 
@@ -221,30 +231,34 @@ const Hero = () => {
               </div>
             )}
           </div>
+          
+          {/* --- 3. เพิ่มเงื่อนไขการแสดงผล --- */}
+          { !isMobile && (
+            <>
+              <motion.div 
+                className="mt-8 space-y-4 relative"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1, delay: 0.5 }}
+              >
+                <div className="relative">
+                  <div className="absolute -left-4 top-0 w-2 h-full bg-gradient-to-b from-orange-400 via-yellow-400 to-cyan-400 opacity-60 rounded-full" />
+                  <p className="text-lg text-orange-100/90 leading-relaxed font-mono">
+                    <span className="text-orange-400">HOLOGRAPHIC_INTERFACE</span>
+                    <span className="text-cyan-400 animate-pulse">_</span><br />
+                    <span className="text-sm text-cyan-300/80 mt-2 block">{'> '}Accessing interdimensional terminal...</span>
+                    <span className="text-sm text-yellow-300/70 mt-1 block">{'> '}Reality matrix: <span className="text-green-400">STABLE</span></span>
+                  </p>
+                </div>
+              </motion.div>
 
-          <motion.div 
-            className="mt-8 space-y-4 relative"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1, delay: 0.5 }}
-          >
-            <div className="relative">
-              <div className="absolute -left-4 top-0 w-2 h-full bg-gradient-to-b from-orange-400 via-yellow-400 to-cyan-400 opacity-60 rounded-full" />
-              <p className="text-lg text-orange-100/90 leading-relaxed font-mono">
-                <span className="text-orange-400">HOLOGRAPHIC_INTERFACE</span>
-                <span className="text-cyan-400 animate-pulse">_</span><br />
-                <span className="text-sm text-cyan-300/80 mt-2 block">{'> '}Accessing interdimensional terminal...</span>
-                <span className="text-sm text-yellow-300/70 mt-1 block">{'> '}Reality matrix: <span className="text-green-400">STABLE</span></span>
-              </p>
-            </div>
-            <div className="bg-black/40 border border-cyan-400/30 rounded px-3 py-2 font-mono text-sm">
-              <span className="text-cyan-400">quantum@reality:~$</span>{' '}
-              <span className="text-yellow-300">Try </span>
-              <code className="text-orange-300 bg-gray-800/50 px-1 rounded">`help`</code>
-              <span className="text-yellow-300"> to explore the void</span>
-              <span className="text-cyan-400 animate-pulse ml-1">█</span>
-            </div>
-          </motion.div>
+              <div className="mt-4 text-xs font-mono text-gray-400 opacity-60">
+                <div>Event Horizon: 15.7 LY</div>
+                <div>Cosmic Radiation: {cosmicReadings.radiation} THz</div>
+                <div>Reality Stability: {cosmicReadings.stability}%</div>
+              </div>
+            </>
+          )}
 
           <div className="mt-6 flex gap-4">
             <div className="flex items-center gap-2">
@@ -260,12 +274,23 @@ const Hero = () => {
               <span className="text-xs text-yellow-300/80 font-mono">SPACETIME.EXE</span>
             </div>
           </div>
+          
+          {/* ส่วนนี้จะแสดงผลทั้งบน Desktop และ Mobile */}
+          <motion.div 
+            className="mt-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.5 }}
+          >
+            <div className="bg-black/40 border border-cyan-400/30 rounded px-3 py-2 font-mono text-sm">
+              <span className="text-cyan-400">quantum@reality:~$</span>{' '}
+              <span className="text-yellow-300">Try </span>
+              <code className="text-orange-300 bg-gray-800/50 px-1 rounded">`help`</code>
+              <span className="text-yellow-300"> to explore the void</span>
+              <span className="text-cyan-400 animate-pulse ml-1">█</span>
+            </div>
+          </motion.div>
 
-          <div className="mt-4 text-xs font-mono text-gray-400 opacity-60">
-            <div>Event Horizon: 15.7 LY</div>
-            <div>Cosmic Radiation: {cosmicReadings.radiation} THz</div>
-            <div>Reality Stability: {cosmicReadings.stability}%</div>
-          </div>
         </motion.div>
 
         <motion.div

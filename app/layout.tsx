@@ -10,17 +10,18 @@ const robotoMono = Roboto_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Ocean Terminal - Peaceful Command Line",
-  description: "A serene command-line interface inspired by the gentle waves of the ocean.",
-  keywords: ["terminal", "ocean", "peaceful", "command-line", "interface"],
-  authors: [{ name: "Ocean Terminal" }],
-  viewport: "width=device-width, initial-scale=1",
-  themeColor: "#4ECDC4", // Ocean turquoise
+  title: "Kongpop's Cosmic Portfolio",
+  description: "A serene command-line interface inspired by the vastness of the cosmos.",
+  keywords: ["terminal", "cosmic", "space", "command-line", "interface"],
+  authors: [{ name: "Kongpop Pipatpusit" }],
+  viewport: "width=device-width, initial-scale=1.0", // บังคับ desktop view
+  themeColor: "#6B5B95", // Cosmic purple
   openGraph: {
-    title: "Ocean Terminal - Peaceful Command Line",
-    description: "Experience the tranquility of the ocean in your terminal.",
+    title: "Cosmic Terminal - Explore the Universe",
+    description: "Experience the vastness of the cosmos through your terminal interface.",
     type: "website",
     locale: "en_US",
+    images: '/image.png', // <-- path ไปยังรูปในโฟลเดอร์ public
   },
 };
 

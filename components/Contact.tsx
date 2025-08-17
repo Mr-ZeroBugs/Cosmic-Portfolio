@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Github, Instagram, Mail, Send, Copy, Check } from "lucide-react";
+import { Github, Instagram, Mail, Send, Signal, Copy, Check } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect, useRef, type ElementType } from "react";
 import emailjs from '@emailjs/browser';
+import { ComponentType } from "react";
 
 // --- Type Definitions ---
 type QuantumParticle = {
@@ -26,6 +27,7 @@ const QuantumParticles = () => {
   const [particles, setParticles] = useState<QuantumParticle[]>([]);
 
   useEffect(() => {
+    // FIX: Generate random values on client-side to prevent Hydration Error
     const newParticles = Array.from({ length: 30 }, (_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -63,6 +65,7 @@ const QuantumParticles = () => {
   );
 };
 
+// FIX: สร้าง Object เพื่อ map ค่าสีกับชื่อคลาส Tailwind แบบเต็ม
 const colorClasses = {
   cyan: {
     border: "border-cyan-400",
@@ -99,25 +102,31 @@ const colorClasses = {
   },
 };
 
-const ContactCard = ({
-  icon: Icon,
-  title,
-  subtitle,
-  link,
+
+type IconProps = {
+  className?: string;
+};
+// Enhanced contact card (แก้ไขแล้ว)
+const ContactCard = ({ 
+  icon: Icon, 
+  title, 
+  subtitle, 
+  link, 
   color,
-  delay = 0
+  delay = 0 
 }: {
-  icon: ElementType;
+  icon: ComponentType<IconProps>;  // FIX: ใช้ ElementType แทน any
   title: string;
   subtitle: string;
   link: string;
-  color: keyof typeof colorClasses;
+  color: keyof typeof colorClasses; // FIX: ใช้ key ของ object colorClasses
   delay?: number;
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isGlitching, setIsGlitching] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   
+  // FIX: ดึงชุดคลาสสีจาก object
   const colors = colorClasses[color];
 
   useEffect(() => {
@@ -141,23 +150,38 @@ const ContactCard = ({
   const isMail = link.startsWith("mailto:");
 
   const cardContent = (
-    <div
-      className={`relative p-6 rounded-lg border-2 backdrop-blur-sm transition-all duration-500 group ${isGlitching ? 'border-red-500 bg-red-500/10 animate-pulse' : `${colors.borderHalfOpacity} ${colors.bg} ${colors.borderHover} ${colors.bgHover}`}`}
+    <div 
+      className={`
+        relative p-6 rounded-lg border-2 backdrop-blur-sm transition-all duration-500 group
+        ${isGlitching 
+          ? 'border-red-500 bg-red-500/10 animate-pulse' 
+          : `${colors.borderHalfOpacity} ${colors.bg} ${colors.borderHover} ${colors.bgHover}`
+        }
+      `}
       onClick={isMail ? handleCopy : undefined}
       style={{ cursor: isMail ? 'pointer' : 'default' }}
     >
-      <motion.div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent" animate={{ y: ["-100%", "100%"] }} transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3 + delay, ease: "linear" }} />
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent"
+        animate={{ y: ["-100%", "100%"] }}
+        transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 3 + delay, ease: "linear" }}
+      />
       <div className={`absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 transition-colors duration-300 ${isGlitching ? 'border-red-500' : colors.border}`} />
       <div className={`absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 transition-colors duration-300 ${isGlitching ? 'border-red-500' : colors.border}`} />
       <div className={`absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 transition-colors duration-300 ${isGlitching ? 'border-red-500' : colors.border}`} />
       <div className={`absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 transition-colors duration-300 ${isGlitching ? 'border-red-500' : colors.border}`} />
 
       <div className="relative flex items-center space-x-4">
-        <motion.div className={`p-3 rounded-full border transition-all duration-300 ${isGlitching ? 'border-red-500 bg-red-500/20' : `${colors.borderHalfOpacity} ${colors.bgIcon} ${colors.bgIconHover}`}`} animate={{ boxShadow: isHovered ? `0 0 25px ${color === 'cyan' ? '#00ffff' : color === 'purple' ? '#a855f7' : '#10b981'}80` : `0 0 10px ${color === 'cyan' ? '#00ffff' : color === 'purple' ? '#a855f7' : '#10b981'}40` }}>
+        <motion.div
+          className={`p-3 rounded-full border transition-all duration-300 ${isGlitching ? 'border-red-500 bg-red-500/20' : `${colors.borderHalfOpacity} ${colors.bgIcon} ${colors.bgIconHover}`}`}
+          animate={{ boxShadow: isHovered ? `0 0 25px ${color === 'cyan' ? '#00ffff' : color === 'purple' ? '#a855f7' : '#10b981'}80` : `0 0 10px ${color === 'cyan' ? '#00ffff' : color === 'purple' ? '#a855f7' : '#10b981'}40` }}
+        >
           <Icon className={`h-6 w-6 transition-all duration-300 ${isGlitching ? 'text-red-400' : colors.text}`} />
         </motion.div>
         <div className="flex-1">
-          <h3 className={`font-bold font-mono transition-all duration-300 ${isGlitching ? 'text-red-400' : colors.textSub}`} style={{ textShadow: `0 0 10px ${isGlitching ? '#ef4444' : color === 'cyan' ? '#00ffff' : color === 'purple' ? '#a855f7' : '#10b981'}` }}>{title}</h3>
+          <h3 className={`font-bold font-mono transition-all duration-300 ${isGlitching ? 'text-red-400' : colors.textSub}`} style={{ textShadow: `0 0 10px ${isGlitching ? '#ef4444' : color === 'cyan' ? '#00ffff' : color === 'purple' ? '#a855f7' : '#10b981'}` }}>
+            {title}
+          </h3>
           <p className={`text-sm font-mono transition-colors duration-300 ${isGlitching ? 'text-red-300' : 'text-gray-400'}`}>{subtitle}</p>
         </div>
         {isMail && (
@@ -184,6 +208,7 @@ const ContactCard = ({
     </motion.div>
   );
 };
+
 
 const TransmissionWaves = () => {
   return (
@@ -225,10 +250,10 @@ const HolographicForm = () => {
     setTransmitted(null);
 
     if (!form.current) {
-      console.error("Form reference is not available.");
-      setTransmitted('error');
-      setIsTransmitting(false);
-      return;
+        console.error("Form reference is not available.");
+        setTransmitted('error');
+        setIsTransmitting(false);
+        return;
     }
     
     const serviceID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
@@ -273,8 +298,6 @@ const HolographicForm = () => {
             <h3 className="text-2xl font-bold font-mono text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400">QUANTUM COMMUNICATION</h3>
             <p className="text-cyan-300 font-mono text-sm mt-2">&gt; Establishing secure connection...</p>
           </div>
-          
-          {/* --- UPDATE: ปรับปรุง Label และ Placeholder --- */}
           <div className="space-y-2">
             <Label htmlFor="user_name" className="text-cyan-400 font-mono text-sm font-bold">Your Name</Label>
             <Input id="user_name" name="user_name" type="text" placeholder="e.g., Jane Doe" required className="border-2 border-cyan-400/50 bg-black/50 text-cyan-100 font-mono placeholder:text-cyan-600 focus:border-cyan-400 focus:bg-cyan-900/20 transition-all" />
@@ -287,8 +310,6 @@ const HolographicForm = () => {
             <Label htmlFor="message" className="text-cyan-400 font-mono text-sm font-bold">Your Message</Label>
             <Textarea id="message" name="message" placeholder="Hi Kongpop, I'd like to talk about..." required className="border-2 border-cyan-400/50 bg-black/50 text-cyan-100 font-mono placeholder:text-cyan-600 focus:border-cyan-400 focus:bg-cyan-900/20 transition-all min-h-[120px]" />
           </div>
-          {/* ------------------------------------------- */}
-
           <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
             <Button type="submit" disabled={isTransmitting} className="w-full border-2 border-cyan-400 bg-cyan-900/20 text-cyan-400 font-mono font-bold transition-all hover:bg-cyan-400/20 hover:text-white hover:shadow-lg hover:shadow-cyan-400/50 disabled:opacity-50">
               {isTransmitting ? ( <motion.div className="flex items-center justify-center"> <motion.div className="w-4 h-4 border-2 border-cyan-400 border-t-transparent rounded-full mr-2" animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} /> TRANSMITTING... </motion.div> ) : ( <> TRANSMIT SIGNAL <Send className="ml-2 h-4 w-4" /> </> )}
@@ -314,13 +335,11 @@ const HolographicForm = () => {
 
 // Main Contact component
 const Contact = () => {
-  // --- UPDATE: อัปเดตข้อมูลติดต่อของคุณ ---
   const contacts = [
-    { icon: Mail, title: "Gmail", subtitle: "51921@ayw.ac.th", link: "mailto:51921@ayw.ac.th", color: "cyan" as const },
+    { icon: Mail, title: "Email", subtitle: "51921@ayw.ac.th", link: "mailto:51921@ayw.ac.th", color: "cyan" as const },
     { icon: Github, title: "Github", subtitle: "github.com/Mr-ZeroBugs", link: "https://github.com/Mr-ZeroBugs", color: "purple" as const },
     { icon: Instagram, title: "Instagram", subtitle: "instagram.com/antarctic.intellectual", link: "https://www.instagram.com/antarctic.intellectual/", color: "emerald" as const },
   ];
-  // --------------------------------------
 
   return (
     <div
