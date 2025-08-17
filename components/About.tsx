@@ -14,7 +14,7 @@ const skills = [
   { name: "Music", x: "0px", y: "90px", color: "#F05032", glow: "#F05032" },
 ];
 
-// --- แก้ไข Component นี้ ---
+// --- HolographicSkill Component ---
 const HolographicSkill = ({ name, x, y, color, glow }: { name: string; x: string; y: string; color: string; glow: string; }) => {
   const [isClient, setIsClient] = useState(false);
 
@@ -25,25 +25,24 @@ const HolographicSkill = ({ name, x, y, color, glow }: { name: string; x: string
   if (!isClient) return null;
 
   const randomDelay = Math.random() * 2;
-  const randomDuration = 4 + Math.random() * 4; // ทำให้ animation ช้าลงเล็กน้อย
+  const randomDuration = 4 + Math.random() * 4;
 
   return (
     <motion.div
       className="absolute"
       initial={{ x: 0, y: 0, opacity: 0 }}
       animate={{
-        x: [x, `calc(${x} + ${Math.random() * 10 - 5}px)`], // ลดการส่ายลง
+        x: [x, `calc(${x} + ${Math.random() * 10 - 5}px)`],
         y: [y, `calc(${y} + ${Math.random() * 10 - 5}px)`],
-        // ทำให้มองเห็นนานขึ้น
-        opacity: [0, 1, 1, 0], 
+        opacity: [0, 1, 1, 0],
       }}
       transition={{
         duration: randomDuration,
         delay: randomDelay,
         repeat: Infinity,
-        repeatType: "loop", // ใช้ loop เพื่อให้วนซ้ำแบบเดิม
+        repeatType: "loop",
         ease: "easeInOut",
-        times: [0, 0.2, 0.8, 1], // ควบคุมช่วงเวลาของ opacity
+        times: [0, 0.2, 0.8, 1],
       }}
     >
       <div className="relative group">
@@ -51,8 +50,7 @@ const HolographicSkill = ({ name, x, y, color, glow }: { name: string; x: string
           className="px-4 py-2 text-sm font-bold font-mono rounded-full border border-white/30 backdrop-blur-sm"
           style={{
             color,
-            // เพิ่มความเข้มของเงา
-            textShadow: `0 0 12px ${glow}`, 
+            textShadow: `0 0 12px ${glow}`,
           }}
         >
           {name}
@@ -69,9 +67,16 @@ const HolographicSkill = ({ name, x, y, color, glow }: { name: string; x: string
   );
 };
 
+// --- About Component ---
 const About = () => {
   return (
     <div className="relative flex min-h-screen w-full items-center justify-center overflow-hidden py-20">
+      {/* --- กรอบใหญ่ (ทั้งหน้า) --- */}
+      <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-cyan-400/50" />
+      <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-cyan-400/50" />
+      <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-cyan-400/50" />
+      <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-cyan-400/50" />
+      
       <div className="absolute inset-0 z-0">
         <motion.div
           className="absolute inset-0 opacity-10"
@@ -88,15 +93,17 @@ const About = () => {
       </div>
 
       <div className="z-10 flex w-full max-w-7xl flex-col items-center gap-12 px-4 md:flex-row md:px-8">
+        {/* --- START: แก้ไข Div นี้เพื่อเปลี่ยนสไตล์กรอบ --- */}
         <motion.div
-          className="w-full md:w-1/2"
+          className="w-full md:w-1/2 relative p-8 rounded-lg border-2 bg-gradient-to-br from-gray-900/50 to-black/50 backdrop-blur-sm transition-all duration-300 border-cyan-400/30 hover:border-cyan-400 hover:shadow-2xl hover:shadow-cyan-400/20"
           initial={{ opacity: 0, x: -50 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
         >
+          {/* ลบกรอบแบบมุมออกไปแล้ว */}
           <motion.h2
-            className="text-5xl font-bold md:text-7xl relative mb-16 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 z-10 font-mono"
+            className="text-5xl font-bold md:text-7xl relative mb-8 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 z-10 font-mono"
             initial={{ y: -100, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             transition={{ duration: 1, type: "spring", stiffness: 100 }}
@@ -104,7 +111,7 @@ const About = () => {
           >
             ABOUT ME
           </motion.h2>
-          <div className="mt-8 space-y-4 font-mono text-lg text-gray-300">
+          <div className="mt-4 space-y-4 font-mono text-lg text-gray-300">
             <p>
               I think, therefore I am.
               In a world of noise, I choose clarity—through tech, code, and the markets.
@@ -112,10 +119,19 @@ const About = () => {
               And innovation is where it all converges.
             </p>
             <p>
+              I walk through fire, I carve the sky,  
+              In code I dream, in truth I try,  
+              Philosophy asks, yet answers lie,  
+              But still, my heart says love you—why? @that one girl.  
+            </p>
+            <p>
               My goal: To innovate the world, not for recognition, but for meaning.
+              
+
             </p>
           </div>
         </motion.div>
+        {/* --- END: สิ้นสุดการแก้ไข --- */}
 
 
         <div className="relative flex h-96 w-full items-center justify-center md:w-1/2">
@@ -144,12 +160,10 @@ const About = () => {
             ))}
           </div>
 
-          {/* --- แก้ไข วงโคจรตรงนี้ --- */}
           {[1, 2, 3].map((ring) => (
             <motion.div
               key={ring}
-              // เพิ่มความเข้มของเส้นขอบ
-              className="absolute rounded-full border border-cyan-400/40" 
+              className="absolute rounded-full border border-cyan-400/40"
               style={{
                 width: `${ring * 80}px`,
                 height: `${ring * 80}px`,

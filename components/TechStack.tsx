@@ -1,14 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, ReactElement } from 'react';
-import { motion, Variants } from 'framer-motion';
+import React, { useState, useEffect, ReactElement, useRef } from 'react';
+import { motion, Variants, useScroll, useTransform } from 'framer-motion';
 
 // Enhanced Tech Icon with holographic effects
 const TechIcon = ({ children }: { children: React.ReactNode }) => (
-  <motion.div 
+  <motion.div
     className="text-cyan-400 text-3xl mr-4 relative"
-    whileHover={{ 
-      scale: 1.2, 
+    whileHover={{
+      scale: 1.2,
       textShadow: "0 0 20px rgba(0, 255, 255, 0.8)",
       filter: "drop-shadow(0 0 10px rgba(0, 255, 255, 0.6))"
     }}
@@ -28,12 +28,11 @@ const TechIcon = ({ children }: { children: React.ReactNode }) => (
 );
 
 // Props for the TechCard component
-// Made 'index' optional as it's passed by the parent
-interface TechCardProps { 
+interface TechCardProps {
   title: string;
-  description: string; 
+  description: string;
   icon: React.ReactNode;
-  index?: number; 
+  index?: number;
 }
 
 // Set a default value for index to prevent errors
@@ -55,23 +54,23 @@ const TechCard = ({ title, description, icon, index = 0 }: TechCardProps) => {
 
   // Explicitly type cardVariants with the Variants type from framer-motion
   const cardVariants: Variants = {
-    hidden: { 
-      y: 50, 
-      opacity: 0, 
+    hidden: {
+      y: 50,
+      opacity: 0,
       rotateX: -30,
-      scale: 0.8 
+      scale: 0.8
     },
-    visible: { 
-      y: 0, 
-      opacity: 1, 
+    visible: {
+      y: 0,
+      opacity: 1,
       rotateX: 0,
       scale: 1,
-      transition: { 
-        type: "spring", 
-        stiffness: 100, 
-        damping: 15, 
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15,
         delay: index * 0.1 // Safe to use index now
-      } 
+      }
     }
   };
 
@@ -80,34 +79,35 @@ const TechCard = ({ title, description, icon, index = 0 }: TechCardProps) => {
       variants={cardVariants}
       initial="hidden"
       whileInView="visible"
+      // ✨ Card จะ animate แค่ครั้งเดียว
       viewport={{ once: true, margin: "-50px" }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      whileHover={{ 
-        y: -10, 
+      whileHover={{
+        y: -10,
         scale: 1.02,
         rotateX: 5,
         transition: { duration: 0.3 }
       }}
       className="perspective-1000"
     >
-      <div className={`relative border-2 bg-gradient-to-br from-gray-900/50 to-black/50 p-6 rounded-lg backdrop-blur-sm 
-                       transition-all duration-500 group overflow-hidden
-                       ${isGlitching ? 'border-red-500 animate-pulse' : 
-                         isHovered ? 'border-cyan-400 shadow-2xl shadow-cyan-400/20' : 'border-cyan-400/30'}`}>
-        
+      <div className={`relative border-2 bg-gradient-to-br from-gray-900/50 to-black/50 p-6 rounded-lg backdrop-blur-sm
+                      transition-all duration-500 group overflow-hidden
+                      ${isGlitching ? 'border-red-500 animate-pulse' :
+                        isHovered ? 'border-cyan-400 shadow-2xl shadow-cyan-400/20' : 'border-cyan-400/30'}`}>
+
         {/* Corner decorations */}
-        <div className={`absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 transition-colors duration-300 z-20 
+        <div className={`absolute top-2 left-2 w-4 h-4 border-l-2 border-t-2 transition-colors duration-300 z-20
                          ${isGlitching ? 'border-red-500' : 'border-cyan-400'}`} />
-        <div className={`absolute top-2 right-2 w-4 h-4 border-r-2 border-t-2 transition-colors duration-300 z-20 
+        <div className={`absolute top-2 right-2 w-4 h-4 border-r-2 border-t-2 transition-colors duration-300 z-20
                          ${isGlitching ? 'border-red-500' : 'border-cyan-400'}`} />
-        <div className={`absolute bottom-2 left-2 w-4 h-4 border-l-2 border-b-2 transition-colors duration-300 z-20 
+        <div className={`absolute bottom-2 left-2 w-4 h-4 border-l-2 border-b-2 transition-colors duration-300 z-20
                          ${isGlitching ? 'border-red-500' : 'border-cyan-400'}`} />
-        <div className={`absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 transition-colors duration-300 z-20 
+        <div className={`absolute bottom-2 right-2 w-4 h-4 border-r-2 border-b-2 transition-colors duration-300 z-20
                          ${isGlitching ? 'border-red-500' : 'border-cyan-400'}`} />
 
         {/* Scanning line effect */}
-        <motion.div 
+        <motion.div
           className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent pointer-events-none z-10"
           animate={{ y: ["-100%", "100%"] }}
           transition={{ duration: 3, repeat: Infinity, repeatDelay: 2, ease: "linear" }}
@@ -143,11 +143,11 @@ const TechCard = ({ title, description, icon, index = 0 }: TechCardProps) => {
 
         <div className="flex items-center mb-4 relative z-20">
           <TechIcon>{icon}</TechIcon>
-          <motion.h3 
-            className={`text-xl font-bold font-mono transition-all duration-300 
-                       ${isGlitching ? 'text-red-400 animate-pulse' : 
-                         'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300'}`}
-            animate={{ 
+          <motion.h3
+            className={`text-xl font-bold font-mono transition-all duration-300
+                        ${isGlitching ? 'text-red-400 animate-pulse' :
+                          'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-300'}`}
+            animate={{
               textShadow: isHovered ? "0 0 20px rgba(0, 255, 255, 0.8)" : "0 0 10px rgba(0, 255, 255, 0.3)",
               x: isGlitching ? [0, -1, 1, 0] : 0
             }}
@@ -155,51 +155,56 @@ const TechCard = ({ title, description, icon, index = 0 }: TechCardProps) => {
             {title}
           </motion.h3>
         </div>
-        
-        <motion.p 
+
+        <motion.p
           className={`font-mono leading-relaxed transition-colors duration-300 relative z-20
-                     ${isGlitching ? 'text-red-300' : 'text-cyan-100'}`}
+                      ${isGlitching ? 'text-red-300' : 'text-cyan-100'}`}
           animate={{ x: isGlitching ? [0, -1, 1, 0] : 0 }}
         >
           <span className="text-cyan-400 font-bold">&gt;</span> {description}
         </motion.p>
 
         {/* Holographic overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-tr from-cyan-400/10 via-transparent to-cyan-300/10 
+        <div className={`absolute inset-0 bg-gradient-to-tr from-cyan-400/10 via-transparent to-cyan-300/10
                          opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
       </div>
     </motion.div>
   );
 };
 
-const TechCategory = ({ title, children, index }: { 
-  title: string, 
+
+// === โค้ดส่วนนี้ถูกปรับกลับเป็นแบบเดิม ให้ animate แค่ครั้งเดียว ===
+const TechCategory = ({ title, children, index }: {
+  title: string,
   children: React.ReactNode,
-  index: number 
+  index: number
 }) => {
   // Explicitly type categoryVariants
   const categoryVariants: Variants = {
     hidden: { opacity: 0, y: 50 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { 
-        duration: 0.8, 
+      transition: {
+        duration: 0.8,
         delay: index * 0.2,
-        ease: "easeOut"
+        ease: "easeOut",
+        // This will allow children to animate after the parent
+        staggerChildren: 0.1
       }
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="mb-16"
       variants={categoryVariants}
       initial="hidden"
       whileInView="visible"
+      // ✨ viewport `once: true` เพื่อให้ทั้ง Category animate แค่ครั้งเดียว
       viewport={{ once: true, margin: "-100px" }}
     >
-      <motion.h2 
+      <motion.h2
         className="text-4xl font-light text-center mb-12 font-mono tracking-widest relative"
         style={{
           textShadow: "0 0 30px rgba(0, 255, 255, 0.6)"
@@ -216,18 +221,18 @@ const TechCategory = ({ title, children, index }: {
         <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
           {title}
         </span>
-        
+
         {/* Animated underline */}
-        <motion.div 
-          className="absolute w-32 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent 
+        <motion.div
+          className="absolute w-32 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent
                      left-1/2 bottom-[-15px] transform -translate-x-1/2"
-          animate={{ 
+          animate={{
             scaleX: [0, 1, 0],
             opacity: [0, 1, 0]
           }}
-          transition={{ 
-            duration: 2, 
-            repeat: Infinity, 
+          transition={{
+            duration: 2,
+            repeat: Infinity,
             repeatDelay: 1,
             ease: "easeInOut"
           }}
@@ -241,20 +246,13 @@ const TechCategory = ({ title, children, index }: {
           </div>
         </div>
       </motion.h2>
-      
-      <motion.div 
+
+      <motion.div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        variants={{
-          visible: {
-            transition: {
-              staggerChildren: 0.1
-            }
-          }
-        }}
       >
         {/* Correctly clone children and pass the index prop without using 'any' */}
-        {React.Children.map(children, (child, childIndex) => 
-          React.isValidElement(child) 
+        {React.Children.map(children, (child, childIndex) =>
+          React.isValidElement(child)
             ? React.cloneElement(child as ReactElement<{ index: number }>, { index: childIndex })
             : child
         )}
@@ -262,6 +260,7 @@ const TechCategory = ({ title, children, index }: {
     </motion.div>
   );
 };
+
 
 // Floating data streams background
 const DataStreamBackground = () => {
@@ -313,12 +312,28 @@ const DataStreamBackground = () => {
 };
 
 const App = () => {
+  const targetRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: targetRef,
+    offset: ["start start", "end start"],
+  });
+
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "-50%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  
+  // ✨ 1. สร้าง Variants สำหรับ header
+  const headerVariants: Variants = {
+      hidden: { opacity: 0, y: -50, scale: 0.8 },
+      visible: { 
+          opacity: 1, y: 0, scale: 1,
+          transition: { duration: 1, type: "spring", stiffness: 100 }
+      }
+  };
+
   return (
-    // Removed bg-black to make the background transparent
-    <div className="relative min-h-screen w-full text-white p-8 md:p-16 overflow-y-auto overflow-x-hidden">
-      {/* Data stream background */}
+    <div ref={targetRef} className="relative min-h-screen w-full text-white p-8 md:p-16 overflow-y-auto overflow-x-hidden">
       <DataStreamBackground />
-      
+
       {/* Corner UI elements */}
       <div className="absolute top-4 left-4 w-12 h-12 border-l-2 border-t-2 border-cyan-400/50" />
       <div className="absolute top-4 right-4 w-12 h-12 border-r-2 border-t-2 border-cyan-400/50" />
@@ -326,18 +341,19 @@ const App = () => {
       <div className="absolute bottom-4 right-4 w-12 h-12 border-r-2 border-b-2 border-cyan-400/50" />
 
       <div className="relative z-10 max-w-7xl mx-auto">
-        <motion.header 
-          className="text-center mb-20"
-          initial={{ opacity: 0, y: -50, scale: 0.8 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 1, type: "spring", stiffness: 100 }}
+        {/* ✨ 2. แก้ไข motion.header ให้ใช้ whileInView */}
+        <motion.header
+          className="text-center mb-20 h-[50vh] flex flex-col items-center justify-center"
+          variants={headerVariants}
+          initial="hidden"
+          whileInView="visible"
+          // ✨ 3. ตั้งค่า viewport ให้ re-animate ได้
+          viewport={{ once: false }}
         >
-          <motion.h1 
+          <motion.h1
+            style={{ y, opacity }} // Parallax effect ยังทำงานเหมือนเดิม
             className="text-5xl md:text-7xl font-black tracking-tighter font-mono
                        bg-clip-text text-transparent bg-gradient-to-br from-cyan-300 to-emerald-400 mb-6"
-            style={{
-              textShadow: "0 0 50px rgba(0, 255, 255, 0.5)"
-            }}
             animate={{
               textShadow: [
                 "0 0 30px rgba(0, 255, 255, 0.3)",
@@ -349,8 +365,8 @@ const App = () => {
           >
             TECHNOLOGY STACKS
           </motion.h1>
-          
-          <motion.p 
+
+          <motion.p
             className="text-cyan-100 mt-4 text-lg font-mono"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -359,8 +375,7 @@ const App = () => {
             <span className="text-cyan-400">&gt;</span> The architecture of our digital universe.
           </motion.p>
 
-          {/* Animated line separator */}
-          <motion.div 
+          <motion.div
             className="w-full h-px bg-gradient-to-r from-transparent via-cyan-400 to-transparent mt-8"
             animate={{ scaleX: [0, 1, 0] }}
             transition={{ duration: 4, repeat: Infinity, repeatDelay: 1 }}
@@ -369,15 +384,15 @@ const App = () => {
 
         <main>
           <TechCategory title="Programming Languages & Core Skills" index={0}>
-            <TechCard 
-              title="Python" 
-              description="Versatile language for AI, automation, data analysis, and rapid prototyping." 
-              icon={<>🐍</>} 
+            <TechCard
+              title="Python"
+              description="Versatile language for AI, automation, data analysis, and rapid prototyping."
+              icon={<>🐍</>}
             />
-            <TechCard 
-              title="C++" 
-              description="High-performance language for algorithms, system programming, and competitive coding." 
-              icon={<>💻</>} 
+            <TechCard
+              title="C++"
+              description="High-performance language for algorithms, system programming, and competitive coding."
+              icon={<>💻</>}
             />
             <TechCard
               title="Next.js"
@@ -387,33 +402,33 @@ const App = () => {
           </TechCategory>
 
           <TechCategory title="AI & Data Science" index={1}>
-            <TechCard 
-              title="Machine Learning & Deep Learning" 
-              description="Designing models to analyze data, make predictions, and drive intelligent applications." 
-              icon={<>🤖</>} 
+            <TechCard
+              title="Machine Learning & Deep Learning"
+              description="Designing models to analyze data, make predictions, and drive intelligent applications."
+              icon={<>🤖</>}
             />
-            <TechCard 
-              title="PyTorch" 
-              description="Core frameworks for building, training, and deploying neural networks efficiently." 
-              icon={<>🧠</>} 
+            <TechCard
+              title="PyTorch"
+              description="Core frameworks for building, training, and deploying neural networks efficiently."
+              icon={<>🧠</>}
             />
-            <TechCard 
-              title="Data Analysis & Visualization" 
-              description="Extracting insights from data using libraries like Pandas, NumPy, and Matplotlib." 
-              icon={<>📊</>} 
+            <TechCard
+              title="Data Analysis & Visualization"
+              description="Extracting insights from data using libraries like Pandas, NumPy, and Matplotlib."
+              icon={<>📊</>}
             />
           </TechCategory>
 
           <TechCategory title="Tools & Ecosystem" index={2}>
-            <TechCard 
-              title="Git & GitHub" 
-              description="Version control and collaborative coding to maintain clean and organized projects." 
-              icon={<>🔧</>} 
+            <TechCard
+              title="Git & GitHub"
+              description="Version control and collaborative coding to maintain clean and organized projects."
+              icon={<>🔧</>}
             />
-            <TechCard 
-              title="VSCode & CLI Tools" 
-              description="Essential tools for efficient coding, debugging, and project management." 
-              icon={<>🖥️</>} 
+            <TechCard
+              title="VSCode & CLI Tools"
+              description="Essential tools for efficient coding, debugging, and project management."
+              icon={<>🖥️</>}
             />
           </TechCategory>
         </main>

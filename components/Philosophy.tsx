@@ -58,12 +58,12 @@ const DataStreamBackground = () => {
     setStreams(newStreams);
   }, []);
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
       {streams.map((stream) => (
         <motion.div
           key={stream.id}
           className="absolute h-px bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent"
-          style={{ ...stream }}
+          style={{ ...stream, top: stream.top, left: stream.left, rotate: stream.rotate, width: stream.width }}
           animate={{ scaleX: [0, 1, 0], opacity: [0, 0.6, 0] }}
           transition={{ duration: 4, repeat: Infinity, delay: stream.id * 0.3, ease: "easeInOut" }}
         />
@@ -71,6 +71,7 @@ const DataStreamBackground = () => {
     </div>
   );
 };
+
 
 // Orbiting quote card component
 const QuoteCard = ({ quote, author, index, isMobile, totalQuotes }: { quote: string; author: string; index: number; isMobile: boolean; totalQuotes: number; }) => {
@@ -87,10 +88,8 @@ const QuoteCard = ({ quote, author, index, isMobile, totalQuotes }: { quote: str
   const getOrbitalPosition = (currentAngle: number) => {
     const rad = currentAngle * Math.PI / 180;
     if (isMobile) {
-      // Mobile: Wide elliptical orbit that goes off-screen
       return { x: 0 + Math.cos(rad) * 350, y: 100 + Math.sin(rad) * 280 };
     } else {
-      // Desktop: Large elliptical orbit around both boxes
       return { x: 0 + Math.cos(rad) * 550, y: 50 + Math.sin(rad) * 300 };
     }
   };
@@ -129,7 +128,7 @@ const SchoolBox = ({ school, isGlitching, isMobile, currentSchool }: { school: k
       variants={glitchVariants}
       initial="initial"
       animate={isGlitching ? "glitch" : "initial"}
-      className={`relative rounded-xl border-2 backdrop-blur-lg z-10 flex flex-col ${isMobile ? 'w-80 min-h-[16rem] p-6' : 'w-96 h-96 p-8'} ${isGlitching ? 'border-red-500 bg-red-900/20 shadow-lg shadow-red-500/30' : 'border-cyan-400/50 bg-black/30 shadow-lg shadow-cyan-400/20'}`}
+      className={`relative rounded-xl border-2 backdrop-blur-lg z-10 flex flex-col ${isMobile ? 'w-80 h-auto min-h-[16rem] p-6' : 'w-96 h-96 p-8'} ${isGlitching ? 'border-red-500 bg-red-900/20 shadow-lg shadow-red-500/30' : 'border-cyan-400/50 bg-black/30 shadow-lg shadow-cyan-400/20'}`}
       whileHover={{ scale: 1.02, borderColor: isGlitching ? '#ef4444' : '#00ffff', boxShadow: isGlitching ? '0 0 40px rgba(239, 68, 68, 0.4)' : '0 0 40px rgba(0, 255, 255, 0.4)' }}
       transition={{ duration: 0.3 }}
     >
@@ -181,28 +180,53 @@ const PhilosophyPage = () => {
     }
   }, [isMobile]);
 
-  // Show fewer quotes on mobile to avoid clutter
   const quotesToShow = isMobile ? philosophyQuotes.slice(0, 3) : philosophyQuotes;
 
   return (
+    // ✨ 1. ลบ bg-black และ text-white ออกจาก div หลัก
     <div className="relative w-full min-h-screen overflow-x-hidden flex flex-col items-center justify-center py-20 px-4">
       <DataStreamBackground />
-      <motion.div initial={{ opacity: 0, y: -100 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, type: "spring" }} className="relative mb-16 z-20">
-        <motion.h1 className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 font-mono text-center"
-          style={{ textShadow: "0 0 40px rgba(0, 255, 255, 0.6)" }}
+
+      {/* --- Corner border elements --- */}
+      <div className="absolute top-4 left-4 w-12 h-12 border-l-2 border-t-2 border-cyan-400/50" />
+      <div className="absolute top-4 right-4 w-12 h-12 border-r-2 border-t-2 border-cyan-400/50" />
+      <div className="absolute bottom-4 left-4 w-12 h-12 border-l-2 border-b-2 border-cyan-400/50" />
+      <div className="absolute bottom-4 right-4 w-12 h-12 border-r-2 border-b-2 border-cyan-400/50" />
+
+      <div className="relative mb-16 z-20">
+        <motion.h1 
+          className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 font-mono text-center"
+          initial={{ y: -100, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          // ✨ 2. แก้เป็น once: false เพื่อให้ animate ทุกครั้งที่เลื่อนเจอ
+          viewport={{ once: false }}
+          transition={{ duration: 1, type: "spring", stiffness: 100 }}
+          
+          animate={{
+            textShadow: [
+              "0 0 30px rgba(0, 255, 255, 0.3)",
+              "0 0 60px rgba(0, 255, 255, 0.7)",
+              "0 0 30px rgba(0, 255, 255, 0.3)"
+            ],
+            transition: {
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }
+          }}
         >
           Philosophy Core
         </motion.h1>
-      </motion.div>
+      </div>
       <div className={`relative z-10 flex items-center justify-center ${isMobile ? '' : 'gap-24'}`}>
         {isMobile ? (
           <SchoolBox school={currentSchool} isGlitching={isGlitching} isMobile={true} currentSchool={currentSchool} />
         ) : (
           <>
-            <motion.div initial={{ x: -200, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.3, type: "spring" }}>
+            <motion.div initial={{ x: -200, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} viewport={{once: true}} transition={{ delay: 0.3, type: "spring" }}>
               <SchoolBox school="stoicism" isGlitching={isGlitching} isMobile={false} />
             </motion.div>
-            <motion.div initial={{ x: 200, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.5, type: "spring" }}>
+            <motion.div initial={{ x: 200, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} viewport={{once: true}} transition={{ delay: 0.5, type: "spring" }}>
               <SchoolBox school="existentialism" isGlitching={isGlitching} isMobile={false} />
             </motion.div>
           </>
