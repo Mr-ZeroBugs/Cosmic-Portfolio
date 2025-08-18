@@ -350,11 +350,10 @@ const Contact = () => {
       <TransmissionWaves />
 
       <motion.h2
-        className="relative mb-16 text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 z-10 font-mono"
-        initial={{ y: -100, opacity: 0 }}
-        whileInView={{ y: 0, opacity: 1 }}
-        transition={{ duration: 1, type: "spring", stiffness: 100 }}
-        style={{ textShadow: "0 0 40px rgba(0, 255, 255, 0.6)" }}
+        className="text-5xl md:text-7xl font-bold font-mono mb-6 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400"
+    initial={{ opacity: 0, y: -50 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8, type: "spring" }}
       >
         CONTACT
       </motion.h2>

@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-// Import 'Variants' type to fix the TypeScript error
 import { motion, AnimatePresence, useMotionValue, useTransform, animate, type Variants } from 'framer-motion';
 
-// Data: All philosophy quotes
+// --- Data ---
+
 const philosophyQuotes = [
   { quote: "I think, therefore I am.", author: "René Descartes", school: "existentialism" },
   { quote: "Everything we hear is an opinion, not the truth.", author: "Marcus Aurelius", school: "stoicism" },
@@ -14,66 +14,52 @@ const philosophyQuotes = [
   { quote: "He who has a why to live can bear almost any how.", author: "Friedrich Nietzsche", school: "existentialism" },
 ];
 
-// Data for the philosophy school boxes
 const philosophySchools = {
   stoicism: {
     title: "Stoicism",
-    description: "A philosophy built on reason, nature, and virtue. It’s about facing reality head-on, with wisdom and resilience, instead of running from it. Founded by Zeno of Citium, Stoicism teaches that we can’t control the world, but we can control ourselves—our thoughts, our actions, our response. True peace and strength come not from what happens outside, but from the mind that refuses to be broken."
+    description: "A philosophy built on reason, nature, and virtue. It’s about facing reality head-on, with wisdom and resilience, instead of running from it.Stoicism teaches that we can’t control the world, but we can control ourselves—our thoughts, our actions. True peace and strength come not from what happens outside, but from within.",
+    color: "#06B6D4", // Cyan
+    glowColor: "#22D3EE",
   },
   existentialism: {
     title: "Existentialism",
-    description: "A philosophical theory which emphasizes the existence of the individual person as a free and responsible agent determining their own development through acts of the will. Explores themes of authenticity, freedom, anxiety, and the search for meaning in an apparently meaningless universe."
+    description: "A philosophical theory which emphasizes the existence of the individual person as a free and responsible agent determining their own development through acts of the will. Explores themes of authenticity, freedom, anxiety, and the search for meaning in an apparently meaningless universe.",
+    color: "#A855F7", // Purple
+    glowColor: "#C084FC",
   }
 };
 
-// Typed glitch animation variants
-const glitchVariants: Variants = {
-  initial: {
-    x: 0, y: 0,
-    textShadow: "0 0 10px rgba(0, 255, 255, 0.3)"
-  },
-  glitch: {
-    x: [0, -3, 3, -2, 2, 0],
-    y: [0, 2, -2, 3, -3, 0],
-    textShadow: [
-      "0 0 10px rgba(0, 255, 255, 0.3)", "3px 0 #ff0000, -3px 0 #00ffff",
-      "-3px 0 #ff0000, 3px 0 #00ffff", "2px 2px #ff0000, -2px -2px #00ffff",
-      "0 0 20px rgba(255, 0, 0, 0.8)", "0 0 10px rgba(0, 255, 255, 0.3)"
-    ],
-    transition: { duration: 0.4, times: [0, 0.2, 0.4, 0.6, 0.8, 1], ease: "easeInOut" }
-  }
+// --- Type Definitions ---
+type School = keyof typeof philosophySchools;
+
+// --- Sub Components ---
+
+const AnimatedQuote = ({ quote, glowColor }: { quote: { quote: string; author: string }, glowColor: string }) => {
+    const count = useMotionValue(0);
+    const rounded = useTransform(count, (latest) => Math.round(latest));
+    const displayText = useTransform(rounded, (latest) => `"${quote.quote.slice(0, latest)}"`);
+
+    useEffect(() => {
+        const controls = animate(count, quote.quote.length, {
+            type: 'tween',
+            duration: 3,
+            ease: 'easeInOut',
+        });
+        return controls.stop;
+    }, [quote.quote, count]);
+
+    return (
+        <div className="text-center font-mono h-24 flex flex-col justify-center items-center">
+            <motion.p className="text-sm italic" style={{ textShadow: `0 0 10px ${glowColor}` }}>
+                {displayText}
+            </motion.p>
+            <motion.p className="text-xs mt-2 opacity-70" initial={{ opacity: 0 }} animate={{ opacity: 0.7 }} transition={{ delay: 3 }}>
+                - {quote.author}
+            </motion.p>
+        </div>
+    );
 };
 
-// Background data stream effect
-const DataStreamBackground = () => {
-  const [streams, setStreams] = useState<Array<{ id: number; width: string; left: string; top: string; rotate: string; }>>([]);
-  useEffect(() => {
-    const newStreams = Array.from({ length: 15 }, (_, i) => ({
-      id: i,
-      width: `${200 + Math.random() * 300}px`,
-      left: `${Math.random() * 100}%`,
-      top: `${Math.random() * 100}%`,
-      rotate: `${Math.random() * 360}deg`
-    }));
-    setStreams(newStreams);
-  }, []);
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-      {streams.map((stream) => (
-        <motion.div
-          key={stream.id}
-          className="absolute h-px bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent"
-          style={{ ...stream, top: stream.top, left: stream.left, rotate: stream.rotate, width: stream.width }}
-          animate={{ scaleX: [0, 1, 0], opacity: [0, 0.6, 0] }}
-          transition={{ duration: 4, repeat: Infinity, delay: stream.id * 0.3, ease: "easeInOut" }}
-        />
-      ))}
-    </div>
-  );
-};
-
-
-// Orbiting quote card component
 const QuoteCard = ({ quote, author, index, isMobile, totalQuotes }: { quote: string; author: string; index: number; isMobile: boolean; totalQuotes: number; }) => {
   const initialAngle = index * (360 / totalQuotes);
   const angle = useMotionValue(initialAngle);
@@ -118,38 +104,74 @@ const QuoteCard = ({ quote, author, index, isMobile, totalQuotes }: { quote: str
   );
 };
 
-// Philosophy school box component
-const SchoolBox = ({ school, isGlitching, isMobile, currentSchool }: { school: keyof typeof philosophySchools; isGlitching: boolean; isMobile: boolean; currentSchool?: keyof typeof philosophySchools; }) => {
+const SchoolBox = ({ school, isGlitching, isMobile, currentSchool }: { school: School; isGlitching: boolean; isMobile: boolean; currentSchool?: School; }) => {
   const schoolData = philosophySchools[school];
+  const { color, glowColor } = schoolData;
+  const [currentQuote, setCurrentQuote] = useState(philosophyQuotes.filter(q => q.school === school)[0]);
+
+  useEffect(() => {
+    const relevantQuotes = philosophyQuotes.filter(q => q.school === school);
+    const quoteInterval = setInterval(() => {
+      setCurrentQuote(prev => {
+        const currentIndex = relevantQuotes.findIndex(q => q.quote === prev.quote);
+        return relevantQuotes[(currentIndex + 1) % relevantQuotes.length];
+      });
+    }, 7000);
+    return () => clearInterval(quoteInterval);
+  }, [school]);
+
   if (isMobile && currentSchool !== school) return null;
 
   return (
     <motion.div
-      variants={glitchVariants}
-      initial="initial"
-      animate={isGlitching ? "glitch" : "initial"}
-      className={`relative rounded-xl border-2 backdrop-blur-lg z-10 flex flex-col ${isMobile ? 'w-80 h-auto min-h-[16rem] p-6' : 'w-96 h-96 p-8'} ${isGlitching ? 'border-red-500 bg-red-900/20 shadow-lg shadow-red-500/30' : 'border-cyan-400/50 bg-black/30 shadow-lg shadow-cyan-400/20'}`}
-      whileHover={{ scale: 1.02, borderColor: isGlitching ? '#ef4444' : '#00ffff', boxShadow: isGlitching ? '0 0 40px rgba(239, 68, 68, 0.4)' : '0 0 40px rgba(0, 255, 255, 0.4)' }}
+      className={`relative rounded-xl border-2 backdrop-blur-lg z-10 flex flex-col ${isMobile ? 'w-80 h-auto p-6' : 'w-96 p-8'}`}
+      style={{
+        borderColor: isGlitching ? '#ef4444' : color,
+        boxShadow: isGlitching ? '0 0 40px rgba(239, 68, 68, 0.4)' : `0 0 40px ${color}50`,
+        backgroundColor: 'rgba(0,0,0,0.3)'
+      }}
+      whileHover={{
+        scale: 1.02,
+        borderColor: isGlitching ? '#ef4444' : glowColor,
+        boxShadow: isGlitching ? '0 0 40px rgba(239, 68, 68, 0.4)' : `0 0 40px ${glowColor}70`
+      }}
       transition={{ duration: 0.3 }}
     >
-      <div className={`absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 transition-colors duration-300 ${isGlitching ? 'border-red-500' : 'border-cyan-400'}`} />
-      <div className={`absolute top-3 right-3 w-6 h-6 border-r-2 border-t-2 transition-colors duration-300 ${isGlitching ? 'border-red-500' : 'border-cyan-400'}`} />
-      <div className={`absolute bottom-3 left-3 w-6 h-6 border-l-2 border-b-2 transition-colors duration-300 ${isGlitching ? 'border-red-500' : 'border-cyan-400'}`} />
-      <div className={`absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 transition-colors duration-300 ${isGlitching ? 'border-red-500' : 'border-cyan-400'}`} />
+      <div className={`absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2 transition-colors duration-300`} style={{ borderColor: isGlitching ? '#ef4444' : color }} />
+      <div className={`absolute top-3 right-3 w-6 h-6 border-r-2 border-t-2 transition-colors duration-300`} style={{ borderColor: isGlitching ? '#ef4444' : color }} />
+      <div className={`absolute bottom-3 left-3 w-6 h-6 border-l-2 border-b-2 transition-colors duration-300`} style={{ borderColor: isGlitching ? '#ef4444' : color }} />
+      <div className={`absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2 transition-colors duration-300`} style={{ borderColor: isGlitching ? '#ef4444' : color }} />
+
       <div className="relative z-10 h-full flex flex-col">
-        <motion.h3 className={`text-3xl font-bold mb-6 font-mono ${isGlitching ? 'text-red-400' : 'text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-400'}`}>{schoolData.title}</motion.h3>
-        <motion.p className={`text-gray-300 text-sm leading-relaxed flex-grow ${isGlitching ? 'text-red-300' : ''}`}>
-          <span className={`font-bold ${isGlitching ? 'text-red-400' : 'text-cyan-400'}`}>&gt;</span> {schoolData.description}
-        </motion.p>
+        <motion.h3
+          className={`text-3xl font-bold mb-4 font-mono`}
+          style={{ color: isGlitching ? '#ef4444' : glowColor, textShadow: `0 0 15px ${isGlitching ? '#ef4444' : glowColor}` }}
+        >
+          {schoolData.title}
+        </motion.h3>
+        <p className={`text-gray-300 text-sm leading-relaxed flex-grow ${isGlitching ? 'text-red-300' : ''}`}>
+          <span className={`font-bold`} style={{ color: isGlitching ? '#ef4444' : color }}>&gt;</span> {schoolData.description}
+        </p>
+        <AnimatePresence mode="wait">
+            <motion.div
+                key={currentQuote.quote}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+            >
+                <AnimatedQuote quote={currentQuote} glowColor={glowColor} />
+            </motion.div>
+        </AnimatePresence>
       </div>
     </motion.div>
   );
 };
 
-// Main page component
+// --- Main Page Component ---
 const PhilosophyPage = () => {
   const [isMobile, setIsMobile] = useState(false);
-  const [currentSchool, setCurrentSchool] = useState<keyof typeof philosophySchools>('stoicism');
+  const [currentSchool, setCurrentSchool] = useState<School>('stoicism');
   const [isGlitching, setIsGlitching] = useState(false);
 
   useEffect(() => {
@@ -167,11 +189,11 @@ const PhilosophyPage = () => {
           setCurrentSchool(prev => prev === 'stoicism' ? 'existentialism' : 'stoicism');
           setIsGlitching(false);
         }, 400);
-      }, 5000);
+      }, 7000); // Changed duration to match quote change
       return () => clearInterval(interval);
     } else {
       const interval = setInterval(() => {
-        if (Math.random() < 0.4) {
+        if (Math.random() < 0.2) {
           setIsGlitching(true);
           setTimeout(() => setIsGlitching(false), 400);
         }
@@ -183,11 +205,8 @@ const PhilosophyPage = () => {
   const quotesToShow = isMobile ? philosophyQuotes.slice(0, 3) : philosophyQuotes;
 
   return (
-    // ✨ 1. ลบ bg-black และ text-white ออกจาก div หลัก
-    <div className="relative w-full min-h-screen overflow-x-hidden flex flex-col items-center justify-center py-20 px-4">
-      <DataStreamBackground />
-
-      {/* --- Corner border elements --- */}
+    <div className="relative w-full min-h-screen overflow-x-hidden flex flex-col items-center justify-center py-20 px-4 text-white">
+      {/* Corner border elements */}
       <div className="absolute top-4 left-4 w-12 h-12 border-l-2 border-t-2 border-cyan-400/50" />
       <div className="absolute top-4 right-4 w-12 h-12 border-r-2 border-t-2 border-cyan-400/50" />
       <div className="absolute bottom-4 left-4 w-12 h-12 border-l-2 border-b-2 border-cyan-400/50" />
@@ -195,29 +214,24 @@ const PhilosophyPage = () => {
 
       <div className="relative mb-16 z-20">
         <motion.h1 
-          className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 font-mono text-center"
+          className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 font-mono text-center"
           initial={{ y: -100, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
-          // ✨ 2. แก้เป็น once: false เพื่อให้ animate ทุกครั้งที่เลื่อนเจอ
-          viewport={{ once: false }}
+          viewport={{ once: true }}
           transition={{ duration: 1, type: "spring", stiffness: 100 }}
-          
           animate={{
             textShadow: [
               "0 0 30px rgba(0, 255, 255, 0.3)",
-              "0 0 60px rgba(0, 255, 255, 0.7)",
+              "0 0 60px rgba(168, 85, 247, 0.5)",
               "0 0 30px rgba(0, 255, 255, 0.3)"
             ],
-            transition: {
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }
+            transition: { duration: 3, repeat: Infinity, ease: "easeInOut" }
           }}
         >
           Philosophy Core
         </motion.h1>
       </div>
+
       <div className={`relative z-10 flex items-center justify-center ${isMobile ? '' : 'gap-24'}`}>
         {isMobile ? (
           <SchoolBox school={currentSchool} isGlitching={isGlitching} isMobile={true} currentSchool={currentSchool} />
@@ -232,6 +246,7 @@ const PhilosophyPage = () => {
           </>
         )}
       </div>
+
       <div className="absolute inset-0">
         {quotesToShow.map((item, index) => (
           <QuoteCard key={item.quote} index={index} quote={item.quote} author={item.author} isMobile={isMobile} totalQuotes={quotesToShow.length} />
