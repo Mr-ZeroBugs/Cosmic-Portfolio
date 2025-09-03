@@ -7,7 +7,7 @@ import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Github, Eye, ArrowRight, ChevronDown, ChevronUp, Zap, Star } from "lucide-react";
+import { Github, Eye, ArrowRight, ChevronDown, Zap, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // --- Type Definitions ---
@@ -162,10 +162,9 @@ const QuantumLoader = () => {
   );
 };
 
-const HolographicProjectCard = ({ project, index }: { project: Project; index: number; }) => {
+const HolographicProjectCard = ({ project, index, onReadMoreClick }: { project: Project; index: number; onReadMoreClick: (project: Project) => void; }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isGlitching, setIsGlitching] = useState(false);
-    const [showFullDescription, setShowFullDescription] = useState(false);
     const [cardParticles, setCardParticles] = useState<CardParticle[]>([]);
     const [hologramLines, setHologramLines] = useState<HologramLine[]>([]);
     const [hasMounted, setHasMounted] = useState(false);
@@ -173,7 +172,7 @@ const HolographicProjectCard = ({ project, index }: { project: Project; index: n
     // Truncate description logic
     const maxDescriptionLength = 120;
     const shouldTruncate = project.description.length > maxDescriptionLength;
-    const displayDescription = shouldTruncate && !showFullDescription
+    const displayDescription = shouldTruncate
       ? project.description.substring(0, maxDescriptionLength) + "..."
       : project.description;
 
@@ -425,26 +424,20 @@ const HolographicProjectCard = ({ project, index }: { project: Project; index: n
               <div className="flex items-start space-x-2">
                 <span className="text-cyan-400 font-bold text-lg">&gt;</span>
                 <div className="flex-1">
-                  <motion.p
-                    layout
-                    transition={{ duration: 0.3 }}
-                  >
+                  <p>
                     {displayDescription}
-                  </motion.p>
+                  </p>
 
                   {shouldTruncate && (
                     <motion.button
-                      onClick={() => setShowFullDescription(!showFullDescription)}
+                      onClick={() => onReadMoreClick(project)}
                       className="mt-2 flex items-center space-x-1 text-purple-400 hover:text-purple-300 transition-colors duration-200 text-sm font-mono group"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                     >
                       <Zap className="w-3 h-3" />
-                      <span>{showFullDescription ? 'Show Less' : 'Read More'}</span>
-                      {showFullDescription ?
-                        <ChevronUp className="w-3 h-3 transition-transform group-hover:-translate-y-0.5" /> :
-                        <ChevronDown className="w-3 h-3 transition-transform group-hover:translate-y-0.5" />
-                      }
+                      <span>Read More</span>
+                      <ChevronDown className="w-3 h-3 transition-transform group-hover:translate-y-0.5" />
                     </motion.button>
                   )}
                 </div>
@@ -587,11 +580,62 @@ const DataStreamBackground = () => {
     );
   };
 
+// --- Modal Component ---
+const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => void }) => {
+  return (
+    <motion.div
+      className="fixed inset-0 bg-black/80 backdrop-blur-lg flex items-center justify-center z-50 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="relative max-w-4xl w-full max-h-[90vh] bg-gradient-to-br from-gray-900/70 to-black/70 border-2 border-cyan-400/60 rounded-lg shadow-2xl shadow-cyan-400/30 overflow-y-auto"
+        initial={{ y: 100, scale: 0.8, opacity: 0 }}
+        animate={{ y: 0, scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 120, damping: 20 } }}
+        exit={{ y: 100, scale: 0.8, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 md:p-8">
+          <div className="flex justify-between items-start mb-6">
+            <h2 className="text-4xl font-mono text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400" style={{ textShadow: "0 0 20px rgba(0, 255, 255, 0.6)" }}>
+              {project.title}
+            </h2>
+            <motion.button onClick={onClose} className="text-cyan-400 hover:text-white" whileHover={{ scale: 1.2, rotate: 90 }} whileTap={{ scale: 0.9 }}>
+              <X size={28} />
+            </motion.button>
+          </div>
+
+          <div className="aspect-video w-full overflow-hidden rounded-lg border-2 border-cyan-400/40 mb-6">
+            <Image
+              src={project.imageUrl}
+              alt={project.title}
+              width={800}
+              height={450}
+              className="h-full w-full object-cover"
+            />
+          </div>
+
+          <div className="font-mono text-cyan-100 leading-relaxed text-lg">
+            {project.description.split('\n').map((paragraph, index) => (
+              <p key={index} className="mb-4">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 
 // --- Main Projects Component ---
 const Projects = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   useEffect(() => {
     const projectsCollectionRef = collection(db, "projects");
@@ -611,6 +655,14 @@ const Projects = () => {
 
     return () => unsubscribe();
   }, []);
+
+  const handleReadMoreClick = (project: Project) => {
+    setSelectedProject(project);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedProject(null);
+  };
 
   return (
     <div id="projects" className="relative flex min-h-screen w-full flex-col items-center justify-center py-20 px-4 md:px-8 lg:px-16 overflow-hidden">
@@ -670,13 +722,18 @@ const Projects = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.2 }} // ADJUSTED
         >
-          <AnimatePresence>
-            {projects.map((project, index) => (
-              <HolographicProjectCard key={project.id} project={project} index={index} />
-            ))}
-          </AnimatePresence>
+          {projects.map((project, index) => (
+            <HolographicProjectCard key={project.id} project={project} index={index} onReadMoreClick={handleReadMoreClick} />
+          ))}
         </motion.div>
       )}
+
+      <AnimatePresence>
+        {selectedProject && (
+          <ProjectModal project={selectedProject} onClose={handleCloseModal} />
+        )}
+      </AnimatePresence>
+
 
       {!loading && projects.length > 0 && (
         <motion.div className="mt-16 text-center z-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>

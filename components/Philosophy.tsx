@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, animate, type Variants } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform, animate} from 'framer-motion';
 
 // --- Data ---
 
@@ -61,10 +61,12 @@ const AnimatedQuote = ({ quote, glowColor }: { quote: { quote: string; author: s
 };
 
 const QuoteCard = ({ quote, author, index, isMobile, totalQuotes }: { quote: string; author: string; index: number; isMobile: boolean; totalQuotes: number; }) => {
+  const [hasMounted, setHasMounted] = useState(false);
   const initialAngle = index * (360 / totalQuotes);
   const angle = useMotionValue(initialAngle);
 
   useEffect(() => {
+    setHasMounted(true); // This now runs only on the client
     const controls = animate(angle, angle.get() + 360, {
       duration: 30, repeat: Infinity, ease: "linear",
     });
@@ -84,6 +86,11 @@ const QuoteCard = ({ quote, author, index, isMobile, totalQuotes }: { quote: str
     const pos = getOrbitalPosition(a);
     return `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px))`;
   });
+
+  // Prevent rendering on the server and initial client render to avoid hydration mismatch
+  if (!hasMounted) {
+    return null;
+  }
 
   return (
     <motion.div
@@ -213,7 +220,7 @@ const PhilosophyPage = () => {
       <div className="absolute bottom-4 right-4 w-12 h-12 border-r-2 border-b-2 border-cyan-400/50" />
 
       <div className="relative mb-16 z-20">
-        <motion.h1 
+        <motion.h1
           className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 font-mono text-center"
           initial={{ y: -100, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
