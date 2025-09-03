@@ -6,7 +6,7 @@ import Link from "next/link";
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
-import { Home, Layers, Zap, Database, Activity, ChevronDown, ChevronUp } from "lucide-react"; // เพิ่ม ChevronDown และ ChevronUp
+import { Home, Zap, Activity, ChevronDown, X } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Github, Eye } from "lucide-react";
 import Image from "next/image";
@@ -52,6 +52,57 @@ type GlitchLine = {
   width: string;
   delay: number;
 };
+
+// --- Modal Component ---
+const ProjectDetailModal = ({ project, onClose }: { project: Project, onClose: () => void }) => {
+  return (
+    <motion.div
+      className="fixed inset-0 bg-black/90 backdrop-blur-xl flex items-center justify-center z-50 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="relative max-w-4xl w-full max-h-[90vh] bg-gradient-to-br from-slate-900/70 via-blue-900/50 to-black/70 border-2 border-cyan-400/60 rounded-lg shadow-2xl shadow-cyan-400/30 overflow-y-auto"
+        initial={{ y: 100, scale: 0.8, opacity: 0 }}
+        animate={{ y: 0, scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 120, damping: 20 } }}
+        exit={{ y: 100, scale: 0.8, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 md:p-8">
+          <div className="flex justify-between items-start mb-6">
+            <h2 className="text-4xl font-mono text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-300 to-purple-400" style={{ textShadow: "0 0 20px rgba(0, 255, 255, 0.6)" }}>
+              {project.title}
+            </h2>
+            <motion.button onClick={onClose} className="text-cyan-400 hover:text-white" whileHover={{ scale: 1.2, rotate: 90 }} whileTap={{ scale: 0.9 }}>
+              <X size={28} />
+            </motion.button>
+          </div>
+
+          <div className="aspect-video w-full overflow-hidden rounded-lg border-2 border-cyan-400/40 mb-6">
+            <Image
+              src={project.imageUrl}
+              alt={project.title}
+              width={800}
+              height={450}
+              className="h-full w-full object-cover"
+            />
+          </div>
+
+          <div className="font-mono text-cyan-100 leading-relaxed text-lg">
+            {project.description.split('\n').map((paragraph, index) => (
+              <p key={index} className="mb-4">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
 
 // --- Enhanced Quantum Loader with Blackhole Theme ---
 const QuantumBlackholeLoader = () => {
@@ -142,22 +193,21 @@ const QuantumBlackholeLoader = () => {
 };
 
 // --- Enhanced Holographic Project Card ---
-const HolographicLabCard = ({ project, index }: { project: Project; index: number; }) => {
+const HolographicLabCard = ({ project, index, onReadMoreClick }: { project: Project; index: number; onReadMoreClick: (project: Project) => void; }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isGlitching, setIsGlitching] = useState(false);
   const [dataCorruption, setDataCorruption] = useState(false);
   const [hologramParticles, setHologramParticles] = useState<HologramParticle[]>([]);
-  const [showFullDescription, setShowFullDescription] = useState(false); // <--- เพิ่ม State นี้
+  const [hasMounted, setHasMounted] = useState(false);
 
-  // --- เพิ่ม Logic การตัดข้อความ ---
   const maxDescriptionLength = 120;
   const shouldTruncate = project.description.length > maxDescriptionLength;
-  const displayDescription = shouldTruncate && !showFullDescription
+  const displayDescription = shouldTruncate
     ? project.description.substring(0, maxDescriptionLength) + "..."
     : project.description;
-  // ------------------------------------
 
   useEffect(() => {
+    setHasMounted(true);
     const newParticles = Array.from({ length: 12 }, (_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -183,6 +233,10 @@ const HolographicLabCard = ({ project, index }: { project: Project; index: numbe
 
     return () => clearInterval(glitchInterval);
   }, []);
+
+  if (!hasMounted) {
+    return null;
+  }
 
   return (
     <motion.div
@@ -339,7 +393,6 @@ const HolographicLabCard = ({ project, index }: { project: Project; index: numbe
           </CardTitle>
         </CardHeader>
 
-        {/* --- อัปเดต CardContent --- */}
         <CardContent className="flex-grow relative z-10">
           <motion.div
             className={`font-mono leading-relaxed transition-all duration-300 ${
@@ -358,32 +411,25 @@ const HolographicLabCard = ({ project, index }: { project: Project; index: numbe
                 {isGlitching ? '>' : dataCorruption ? '?' : '>'}
               </span>
               <div className="flex-1">
-                <motion.p
-                  layout // เพิ่ม prop นี้เพื่อให้เกิด animation
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                >
+                <p>
                   {displayDescription}
-                </motion.p>
+                </p>
                 {shouldTruncate && (
                   <motion.button
-                    onClick={() => setShowFullDescription(!showFullDescription)}
+                    onClick={() => onReadMoreClick(project)}
                     className="mt-2 flex items-center space-x-1 text-purple-400 hover:text-purple-300 transition-colors duration-200 text-sm font-mono group"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
                     <Zap className="w-3 h-3" />
-                    <span>{showFullDescription ? 'Show Less' : 'Read More'}</span>
-                    {showFullDescription ?
-                      <ChevronUp className="w-3 h-3 transition-transform group-hover:-translate-y-0.5" /> :
-                      <ChevronDown className="w-3 h-3 transition-transform group-hover:translate-y-0.5" />
-                    }
+                    <span>Read More</span>
+                    <ChevronDown className="w-3 h-3 transition-transform group-hover:translate-y-0.5" />
                   </motion.button>
                 )}
               </div>
             </div>
           </motion.div>
         </CardContent>
-        {/* --------------------------- */}
 
         <CardFooter className="flex flex-col items-start space-y-4 relative z-10">
           <div className="flex flex-wrap gap-2">
@@ -463,10 +509,14 @@ const HolographicLabCard = ({ project, index }: { project: Project; index: numbe
 
 // --- Enhanced Data Stream Background ---
 const QuantumDataStreamBackground = () => {
+  const [hasMounted, setHasMounted] = useState(false);
   const [streams, setStreams] = useState<DataStream[]>([]);
   const [glitchLines, setGlitchLines] = useState<GlitchLine[]>([]);
+  const [nodes, setNodes] = useState<{ id: number; left: string; top: string; }[]>([]);
 
   useEffect(() => {
+    setHasMounted(true);
+
     const newStreams = Array.from({ length: 30 }, (_, i) => ({
       id: i,
       width: `${200 + Math.random() * 400}px`,
@@ -487,7 +537,19 @@ const QuantumDataStreamBackground = () => {
       delay: Math.random() * 5
     }));
     setGlitchLines(newGlitchLines);
+    
+    const newNodes = Array.from({ length: 15 }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+    }));
+    setNodes(newNodes);
+
   }, []);
+
+  if (!hasMounted) {
+    return null;
+  }
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -542,13 +604,13 @@ const QuantumDataStreamBackground = () => {
       ))}
 
       {/* Floating data nodes */}
-      {[...Array(15)].map((_, i) => (
+      {nodes.map((node) => (
         <motion.div
-          key={`node-${i}`}
+          key={`node-${node.id}`}
           className="absolute w-1 h-1 bg-cyan-400 rounded-full"
           style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
+            left: node.left,
+            top: node.top,
             boxShadow: '0 0 6px #00FFFF'
           }}
           animate={{
@@ -560,7 +622,7 @@ const QuantumDataStreamBackground = () => {
           transition={{
             duration: 8 + Math.random() * 4,
             repeat: Infinity,
-            delay: i * 0.5,
+            delay: node.id * 0.5,
             ease: "easeInOut"
           }}
         />
@@ -575,6 +637,7 @@ const AllProjectsPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedTag, setSelectedTag] = useState<string>("All");
   const [systemStatus, setSystemStatus] = useState<'ONLINE' | 'SCANNING' | 'ERROR'>('SCANNING');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   useEffect(() => {
     const projectsCollectionRef = collection(db, "projects");
@@ -606,6 +669,14 @@ const AllProjectsPage = () => {
     }
     return projects.filter(p => p.tags.map(t => t.trim()).includes(selectedTag));
   }, [projects, selectedTag]);
+
+  const handleReadMoreClick = (project: Project) => {
+    setSelectedProject(project);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedProject(null);
+  };
 
   return (
     <div className="relative flex min-h-screen w-full flex-col items-center py-20 px-4 md:px-8 lg:px-16 overflow-hidden bg-gradient-to-b from-black via-slate-900 to-black">
@@ -709,11 +780,18 @@ const AllProjectsPage = () => {
                 key={project.id}
                 project={project}
                 index={index}
+                onReadMoreClick={handleReadMoreClick}
               />
             ))}
           </AnimatePresence>
         </motion.div>
       )}
+
+      <AnimatePresence>
+        {selectedProject && (
+          <ProjectDetailModal project={selectedProject} onClose={handleCloseModal} />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
