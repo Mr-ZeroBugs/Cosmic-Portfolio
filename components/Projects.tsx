@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+// ✅ 1. เพิ่ม `orderBy` เข้ามาใน import
+import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Github, Eye, ArrowRight, ChevronDown, Zap, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -639,9 +640,11 @@ const Projects = () => {
 
   useEffect(() => {
     const projectsCollectionRef = collection(db, "projects");
+    // ✅ 2. เพิ่ม orderBy("position", "asc") เข้ามาใน query
     const q = query(
       projectsCollectionRef,
-      where("featured", "==", true)
+      where("featured", "==", true),
+      orderBy("position", "asc")
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
