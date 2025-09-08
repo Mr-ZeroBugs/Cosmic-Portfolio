@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot } from "firebase/firestore";
+// ✅ 1. เพิ่ม query และ orderBy เข้ามาใน import
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Home, Zap, Activity, ChevronDown, X } from "lucide-react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,6 +22,7 @@ interface Project {
   githubLink: string;
   liveLink?: string;
   featured?: boolean;
+  position?: number; // ✅ 2. เพิ่ม position เข้าไปใน type
 }
 
 type HologramParticle = {
@@ -640,8 +642,11 @@ const AllProjectsPage = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   useEffect(() => {
+    // ✅ 3. สร้าง query ที่มีการเรียงลำดับ
     const projectsCollectionRef = collection(db, "projects");
-    const unsubscribe = onSnapshot(projectsCollectionRef, (snapshot) => {
+    const q = query(projectsCollectionRef, orderBy("position", "asc"));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => { // ใช้ q แทน
       const projectsData = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
